@@ -48,5 +48,5 @@
     "dir" : "ltr",
     "lang" : "en-US",
     "related_applications" : [],
-    "prefer_related_applications" : true
+    "prefer_related_applications" : false
 }
