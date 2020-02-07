@@ -1,5 +1,5 @@
 /*-----------------------------------------------------CONSTANTS---------------------------------------------------------- */
-const APP_SHELL_CACHE = 'appShell-v14'
+const APP_SHELL_CACHE = 'appShell-v15'
 const DYNAMIC_CACHE = 'dynamicData';
 const STATIC_ASSETS = {
     name: 'APP_SHELL_ASSETS',
