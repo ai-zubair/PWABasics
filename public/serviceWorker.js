@@ -1,21 +1,27 @@
 /*-----------------------------------------------------CONSTANTS---------------------------------------------------------- */
 const APP_SHELL_CACHE = 'appShell-v14'
 const DYNAMIC_CACHE = 'dynamicData';
-const APP_SHELL_ASSETS = [
-    '/',
-    '/index.html',
-    '/offline.html',
-    '/src/js/app.js',
-    '/src/js/feed.js',
-    '/src/js/material.min.js',
-    '/src/css/app.css',
-    '/src/css/feed.css',
-    '/src/images/main-image.jpg',
-    'https://fonts.googleapis.com/css?family=Roboto:400,700',
-    'https://fonts.googleapis.com/icon?family=Material+Icons',
-    'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css'
-];
-const feedURL = 'https://httpbin.org/get';
+const STATIC_ASSETS = {
+    name: 'APP_SHELL_ASSETS',
+    list: [
+        '/',
+        '/index.html',
+        '/offline.html',
+        '/src/js/app.js',
+        '/src/js/feed.js',
+        '/src/js/material.min.js',
+        '/src/css/app.css',
+        '/src/css/feed.css',
+        '/src/images/main-image.jpg',
+        'https://fonts.googleapis.com/css?family=Roboto:400,700',
+        'https://fonts.googleapis.com/icon?family=Material+Icons',
+        'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css'
+    ]
+}
+const NTC_ASSETS = {
+    name : 'NTC_ASSETS',
+    list : ['https://httpbin.org/get']
+}
 /*----------------------------------------------------------------------------------------------------------------------- */
 
 /*-------------------------------------------------EVENT LISTENERS------------------------------------------------------- */
@@ -31,11 +37,11 @@ self.addEventListener('activate',(event)=>{
 
 self.addEventListener('fetch',(event)=>{
     const assetRequest = event.request;
-    if(requestContainsURL(assetRequest,[feedURL])){
+    if(requestContainsURL(assetRequest,NTC_ASSETS)){
         event.respondWith(
             handleNetworkThenCache(assetRequest).catch(()=> handleFailedFetch(assetRequest))
         );
-    }else if(requestContainsURL(assetRequest,APP_SHELL_ASSETS)){
+    }else if(requestContainsURL(assetRequest,STATIC_ASSETS)){
         event.respondWith(
             handleFetchCacheOnly(assetRequest).catch(()=> handleFailedFetch(assetRequest))
         );
@@ -52,7 +58,7 @@ self.addEventListener('fetch',(event)=>{
 /*-------------------------------------------------UTILITY FUNCTIONS------------------------------------------------------- */
 async function handlePreCaching(){
     const appShellCache = await caches.open(APP_SHELL_CACHE);
-    return appShellCache.addAll(APP_SHELL_ASSETS);
+    appShellCache.addAll(STATIC_ASSETS.list);
 }
 
 async function handleCacheCleanUp(){
@@ -150,15 +156,20 @@ async function showStorageDetails(){
     }
 }
 
-function constructRegexTest(pathList){
+function constructRegexTest(pathList, startIndex){
     let regexString = "";
-    for (let i = 0; i < pathList.length; i++) {
+    for (let i = startIndex; i < pathList.length; i++) {
         regexString += pathList[i].replace(/\//gi,"\\/").replace(/\?/gi,"\\?").replace(/\+/gi,"\\+") + (i === pathList.length-1?"$" : "$|");
     }
     return new RegExp(regexString);
 }
 
-function requestContainsURL(assetRequest,listOfUrl){
-    const assetPathMatcher = constructRegexTest(listOfUrl);
+function requestContainsURL(assetRequest,ASSET_DICTIONARY){
+    const assetRequestArray = assetRequest.url.split("/");
+    if( ASSET_DICTIONARY.name === 'APP_SHELL_ASSETS' && assetRequestArray.length === 4 && assetRequestArray[assetRequestArray.length-1] === "" ){ //handles the root check
+        return true;
+    }
+    const startIndex = ASSET_DICTIONARY.name === 'APP_SHELL_ASSETS' ? 1 : 0; 
+    const assetPathMatcher = constructRegexTest(ASSET_DICTIONARY.list,startIndex);
     return assetPathMatcher.test(assetRequest.url);
 }
