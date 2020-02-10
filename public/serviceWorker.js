@@ -1,9 +1,7 @@
 /*-----------------------------------------------------CONSTANTS---------------------------------------------------------- */
 const APP_SHELL_CACHE = 'appShell-v15'
 const DYNAMIC_CACHE = 'dynamicData';
-const STATIC_ASSETS = {
-    name: 'APP_SHELL_ASSETS',
-    list: [
+const STATIC_ASSETS = [
         '/',
         '/index.html',
         '/offline.html',
@@ -16,18 +14,16 @@ const STATIC_ASSETS = {
         'https://fonts.googleapis.com/css?family=Roboto:400,700',
         'https://fonts.googleapis.com/icon?family=Material+Icons',
         'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css'
-    ]
-}
-const NTC_ASSETS = {
-    name : 'NTC_ASSETS',
-    list : ['https://httpbin.org/get']
-}
+    ];
+
+const NTC_ASSETS = ['https://httpbin.org/get']
 /*----------------------------------------------------------------------------------------------------------------------- */
 
 /*-------------------------------------------------EVENT LISTENERS------------------------------------------------------- */
 self.addEventListener('install',(event)=>{
 
     event.waitUntil( handlePreCaching() );/* remain in the installation phase until the pre-caching is done */
+
 })
 
 self.addEventListener('activate',(event)=>{
@@ -37,11 +33,12 @@ self.addEventListener('activate',(event)=>{
 
 self.addEventListener('fetch',(event)=>{
     const assetRequest = event.request;
-    if(requestContainsURL(assetRequest,NTC_ASSETS)){
+
+    if(requestMatcher(assetRequest,NTC_ASSETS)){
         event.respondWith(
             handleNetworkThenCache(assetRequest).catch(()=> handleFailedFetch(assetRequest))
         );
-    }else if(requestContainsURL(assetRequest,STATIC_ASSETS)){
+    }else if(requestMatcher(assetRequest,STATIC_ASSETS)){
         event.respondWith(
             handleFetchCacheOnly(assetRequest).catch(()=> handleFailedFetch(assetRequest))
         );
@@ -58,7 +55,7 @@ self.addEventListener('fetch',(event)=>{
 /*-------------------------------------------------UTILITY FUNCTIONS------------------------------------------------------- */
 async function handlePreCaching(){
     const appShellCache = await caches.open(APP_SHELL_CACHE);
-    appShellCache.addAll(STATIC_ASSETS.list);
+    return appShellCache.addAll(STATIC_ASSETS.list);
 }
 
 async function handleCacheCleanUp(){
@@ -103,6 +100,7 @@ async function handleFetchNWCF(request){
 }
 
 async function handleFetchCacheOnly(request){
+    
     const cacheResponse = await caches.match(request);
     if(cacheResponse)
         return cacheResponse;
@@ -156,20 +154,30 @@ async function showStorageDetails(){
     }
 }
 
-function constructRegexTest(pathList, startIndex){
-    let regexString = "";
-    for (let i = startIndex; i < pathList.length; i++) {
-        regexString += pathList[i].replace(/\//gi,"\\/").replace(/\?/gi,"\\?").replace(/\+/gi,"\\+") + (i === pathList.length-1?"$" : "$|");
+function requestMatcher(request, listOfUrl) {
+    const URL2match = new URL(request.url);
+    for (let i = 0; i < listOfUrl.length; i++) {
+        if( URL2match.pathname === listOfUrl[i] || URL2match.href === listOfUrl[i] ){
+            return true;
+        }
     }
-    return new RegExp(regexString);
+    return false;
 }
 
-function requestContainsURL(assetRequest,ASSET_DICTIONARY){
-    const assetRequestArray = assetRequest.url.split("/");
-    if( ASSET_DICTIONARY.name === 'APP_SHELL_ASSETS' && assetRequestArray.length === 4 && assetRequestArray[assetRequestArray.length-1] === "" ){ //handles the root check
-        return true;
-    }
-    const startIndex = ASSET_DICTIONARY.name === 'APP_SHELL_ASSETS' ? 1 : 0; 
-    const assetPathMatcher = constructRegexTest(ASSET_DICTIONARY.list,startIndex);
-    return assetPathMatcher.test(assetRequest.url);
+function promiseAny(promiseList) {
+    return new Promise((resolve,reject=>{
+        /* ensure that all list values are promises */
+        promiseList = promiseList.map( promiseValue => Promise.resolve(promiseValue));
+
+        /* resolve this new promise when any one of the promises from the list resolves */
+        promiseList.forEach( promise => promise.then(resolve) );
+
+        /* reject this new promise when all the promises from the list reject */
+        promiseList.reduce( (acc,curr) => acc.catch( () => curr  ))
+                   .catch( () => reject(Error('All promises failed')))
+    }));    
+}
+
+function handleCacheNetworkRace(request) {
+    return promiseAny([fetch(request),caches.match(request)]);
 }
