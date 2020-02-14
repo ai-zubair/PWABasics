@@ -53,24 +53,24 @@ function clearCards(){
   }
 }
 
-function createCard() {
-  console.log("someone called me!");
+function createCard(cardData) {
+
   var cardWrapper = document.createElement('div');
   cardWrapper.className = 'shared-moment-card mdl-card mdl-shadow--2dp';
   var cardTitle = document.createElement('div');
   cardTitle.className = 'mdl-card__title';
-  cardTitle.style.backgroundImage = 'url("/src/images/sf-boat.jpg")';
+  cardTitle.style.backgroundImage = `url(${cardData.poster})`;
   cardTitle.style.backgroundSize = 'cover';
   cardTitle.style.height = '180px';
   cardWrapper.appendChild(cardTitle);
   var cardTitleTextElement = document.createElement('h2');
   cardTitleTextElement.className = 'mdl-card__title-text';
-  cardTitleTextElement.textContent = 'San Francisco Trip';
+  cardTitleTextElement.textContent = cardData.title;
   cardTitleTextElement.style.color = 'white';
   cardTitle.appendChild(cardTitleTextElement);
   var cardSupportingText = document.createElement('div');
   cardSupportingText.className = 'mdl-card__supporting-text';
-  cardSupportingText.textContent = 'In San Francisco';
+  cardSupportingText.textContent = `In ${cardData.location}`;
   cardSupportingText.style.textAlign = 'center';
   // var cardSaveButton = document.createElement('button');
   // cardSaveButton.textContent = 'SAVE'
@@ -88,29 +88,35 @@ function createCard() {
 //   userRequestedCache.addAll(['/src/images/sf-boat.jpg','https://httpbin.org/get']);
 // }
 
-const dataURL = 'https://httpbin.org/get';
+function updateUI(postData){
+  const postDataArray = Object.values(postData);
+  for (let i = 0; i < postDataArray.length; i++) {
+    createCard(postDataArray[i]);
+  }
+}
+const postdbUrl = "https://pwabasics-199ce.firebaseio.com/posts.json"
+
 var cardCreatedFromNetworkResponse = false; 
-cacheThenNetworkFetch(dataURL);
+cacheThenNetworkFetch(postdbUrl);
 
 function cacheThenNetworkFetch(dataURL){
-  fetchFromCache(dataURL);
+  fetchFromIDB('posts');
   fetchFromNetwork(dataURL);
 }
 
-async function fetchFromCache(dataURL){
-  console.log("[Application]: Fetching the card Data from the cache...");
-  const cacheResponse = await caches.match(dataURL)
-  if(cacheResponse){
-    const responseData = await cacheResponse.json();
+async function fetchFromIDB(dataStore){
+  console.log("[Application]: Fetching the card Data from the IDB...");
+  const IDBResponse = await iDBUtils.readFromDB(dataStore);
+  if( IDBResponse.length > 0 ){
     if (cardCreatedFromNetworkResponse) {
-      console.log("Cache response received but card already created using network response.")
+      console.log("IDB response received but card already created using network response.")
       return;
     } else {
-      console.log("Creating the card from cache response");
-      createCard(responseData);
+      console.log("Creating the card from IDB response",IDBResponse);
+      updateUI(IDBResponse);
     }
   }else{
-    console.log("[Application]: Fetching from the cache failed...")
+    console.log("IDB returned an empty response...")
   }
 }
 
@@ -118,11 +124,11 @@ async function fetchFromNetwork(dataURL){
   console.log("[Application]: Fetching the card Data from the network");
   try{
     const networkResponse = await fetch(dataURL);
-    const responseData = networkResponse.json();
+    const responseData = await networkResponse.json();
     console.log("[Application]: Creating CARD from network data...")
     cardCreatedFromNetworkResponse = true;
     clearCards(); //instead of appending a new card replaces the older card which was created from the cache
-    createCard(responseData);
+    updateUI(responseData);
   }catch(err){
     console.log("Oops! Network fetch failed!");
   }
