@@ -63,6 +63,8 @@ const sw_utils = function(){
     async function handleNetworkThenCache(request){
         const networkResponse = await fetch(request);
         const parsedResponse = await networkResponse.clone().json();
+        // await iDBUtils.cleanIfNotPresent('posts',parsedResponse);
+        await iDBUtils.clearDBstore('posts');
         iDBUtils.addToDB('posts',parsedResponse);
         return networkResponse;
     }
