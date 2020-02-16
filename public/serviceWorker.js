@@ -32,3 +32,10 @@ self.addEventListener('fetch',(event)=>{
     }
     
 })
+
+self.addEventListener('sync',(event)=>{
+    console.log('[Service Worker]: Background Sync in progress...');
+    if( event.tag === 'new-post-sync' ){
+        event.waitUntil(sw_utils.syncPostsToServer());
+    }
+})

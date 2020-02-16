@@ -4,16 +4,19 @@ const iDBUtils = function(){
             upgrade(dbInstance,oldVersion,newVersion, transactionInstance){
                 dbInstance.createObjectStore('posts',{
                     keyPath : 'id'
-                })
+                });
+                dbInstance.createObjectStore('sync',{
+                    keyPath : 'id'
+                });
             }
         });
     }
     
-    async function addToDB(dataStore,responseData){
+    async function addToDB(dataStore,responseList){
         const iDB = await initializeDB(); //open the connection to the iDB
         const dbTxn = iDB.transaction(dataStore,'readwrite'); //crete a transaction to interact with the iDB
         const postStore = dbTxn.objectStore(dataStore); //extract the store to interact with, using this transaction
-        Object.values(responseData).forEach(async(response) => {
+        responseList.forEach(async(response) => {
             await postStore.put(response); //wait for the operation request to succeed
         });
         await dbTxn.done;//wait for the transaction to complete
@@ -21,8 +24,8 @@ const iDBUtils = function(){
 
     async function readFromDB(dataStore){
         const iDB = await initializeDB();
-        const responseKeyRange = IDBKeyRange.lowerBound(1,false);
-        const dataStoreResponse = await iDB.getAll(dataStore,responseKeyRange); //using the shortcut method here because we've a single-operation transaction
+        // const responseKeyRange = IDBKeyRange.lowerBound(1,false);
+        const dataStoreResponse = await iDB.getAll(dataStore); //using the shortcut method here because we've a single-operation transaction
         return dataStoreResponse;
     }
 
@@ -48,10 +51,16 @@ const iDBUtils = function(){
         await dbTxn.complete;
     }
 
+    async function removeFromStore(dataStore, itemID ){
+        const iDB = await initializeDB();
+        await iDB.delete(dataStore,itemID);
+    }
+
     return {
         addToDB,
         readFromDB,
         clearDBstore,
-        cleanIfNotPresent
+        cleanIfNotPresent,
+        removeFromStore
     }
 }();

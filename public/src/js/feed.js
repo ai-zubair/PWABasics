@@ -3,6 +3,9 @@ var createPostArea = document.querySelector('#create-post');
 var closeCreatePostModalButton = document.querySelector('#close-create-post-modal-btn');
 var sharedMomentsArea = document.querySelector('#shared-moments');
 var installPromotion = document.getElementById('promotion');
+var postForm = document.getElementById("postForm");
+var titleInput = document.getElementById("title");
+var locationInput = document.getElementById("location");
 
 function showPromotion(){
   if(deferredEvent){
@@ -23,9 +26,9 @@ function showPromotion(){
 
 function openCreatePostModal() {
   createPostArea.style.display = 'block';
-  if('serviceWorker' in navigator){
-    removeServiceWorkers();
-  }
+  // if('serviceWorker' in navigator){
+  //   removeServiceWorkers();
+  // }
 }
 
 async function removeServiceWorkers(){
@@ -105,31 +108,78 @@ function cacheThenNetworkFetch(dataURL){
 }
 
 async function fetchFromIDB(dataStore){
-  console.log("[Application]: Fetching the card Data from the IDB...");
+  // console.log("[Application]: Fetching the card Data from the IDB...");
   const IDBResponse = await iDBUtils.readFromDB(dataStore);
   if( IDBResponse.length > 0 ){
     if (cardCreatedFromNetworkResponse) {
-      console.log("IDB response received but card already created using network response.")
+      // console.log("IDB response received but card already created using network response.")
       return;
     } else {
-      console.log("Creating the card from IDB response",IDBResponse);
+      // console.log("Creating the card from IDB response");
+      console.table(IDBResponse);
       updateUI(IDBResponse);
     }
   }else{
-    console.log("IDB returned an empty response...")
+    // console.log("IDB returned an empty response...")
   }
 }
 
 async function fetchFromNetwork(dataURL){
-  console.log("[Application]: Fetching the card Data from the network");
+  // console.log("[Application]: Fetching the card Data from the network");
   try{
     const networkResponse = await fetch(dataURL);
     const responseData = await networkResponse.json();
-    console.log("[Application]: Creating CARD from network data...")
+    // console.log("[Application]: Creating CARD from network data...")
     cardCreatedFromNetworkResponse = true;
     clearCards(); //instead of appending a new card replaces the older card which was created from the cache
     updateUI(responseData);
   }catch(err){
-    console.log("Oops! Network fetch failed!");
+    // console.log("Oops! Network fetch failed!");
   }
 }
+
+async function sendDataToServer(data){
+  const serverResponse = await fetch(postdbUrl,{
+    method: 'POST',
+    headers:{
+      'Content-Type' : 'application/json',
+      'Accept' : 'application/json'
+    },
+    body: JSON.stringify(data)
+  })
+  console.log("Sent data to the server!",serverResponse);
+}
+
+postForm.addEventListener('submit',async(event)=>{
+  event.preventDefault();//prevent the default event behaviour
+
+  if( titleInput.value.trim() === '' || locationInput.value.trim() === '' ){ //basic form validaiton
+    alert('Please Enter Valid Data!');
+    return;
+  }
+
+  const postData = { //data to send
+    id: Date.now(),
+    title: titleInput.value,
+    location: locationInput.value,
+    poster:'https://firebasestorage.googleapis.com/v0/b/pwabasics-199ce.appspot.com/o/testimg.jpeg?alt=media&token=21e78c60-f38e-4474-b19e-d013d2d54f2e'
+  }
+
+  if( 'serviceWorker' in navigator && 'SyncManager' in window ){ //backward compatability check
+  
+    await iDBUtils.addToDB('sync',[postData]); //storing the task data in IDB
+
+    const serviceWorkerRegistration = await navigator.serviceWorker.ready; //registering a sync task
+    await serviceWorkerRegistration.sync.register('new-post-sync'); //registering a sync task
+    
+    //the following code uses MDL to show user notification and is not neccassary for BG-Sync but just a UX feature
+    const snackbarContainer = document.getElementById('confirmation-toast');
+    const notificationData = { message: 'Your post has been saved for syncing!' };
+    snackbarContainer.MaterialSnackbar.showSnackbar(notificationData);
+    //end of notification code
+
+  }else{ //add a fallback for the older browsers and simply send the data to the server
+    sendDataToServer(postData).catch(err=>{console.log('sending post data to the server failed!')});
+  }
+  closeCreatePostModal();
+})

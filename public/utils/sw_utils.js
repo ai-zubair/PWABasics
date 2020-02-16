@@ -64,8 +64,9 @@ const sw_utils = function(){
         const networkResponse = await fetch(request);
         const parsedResponse = await networkResponse.clone().json();
         // await iDBUtils.cleanIfNotPresent('posts',parsedResponse);
+        const responseList = Object.values(parsedResponse);
         await iDBUtils.clearDBstore('posts');
-        iDBUtils.addToDB('posts',parsedResponse);
+        iDBUtils.addToDB('posts',responseList);
         return networkResponse;
     }
     
@@ -130,6 +131,30 @@ const sw_utils = function(){
         return promiseAny([fetch(request),caches.match(request)]);
     }
 
+    const postdbUrl = "https://pwabasics-199ce.firebaseio.com/posts.json";
+
+    function sendDataToServer(post){
+        return fetch(postdbUrl,{
+            method: 'POST',
+            headers:{
+              'Content-Type' : 'application/json',
+              'Accept' : 'application/json'
+            },
+            body: JSON.stringify(post)
+          })
+    }
+
+    async function syncPostsToServer(){
+        const savedPosts = await iDBUtils.readFromDB('sync'); //read all the posts saved for sync
+
+        savedPosts.forEach(async(post)=>{ //for each of the saved posts
+            const serverResponse = await sendDataToServer(post);//send the post to the server
+            if(serverResponse.ok){
+                await iDBUtils.removeFromStore('sync',post.id);//delete the post from IDB
+            }
+        })
+    }
+
     return {
         handlePreCaching,
         handleCacheCleanUp,
@@ -137,6 +162,7 @@ const sw_utils = function(){
         handleFetchCacheOnly,
         handleNetworkThenCache,
         handleFailedFetch,
-        requestMatcher
+        requestMatcher,
+        syncPostsToServer
     }
 }();
