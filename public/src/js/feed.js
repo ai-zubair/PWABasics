@@ -97,10 +97,11 @@ function updateUI(postData){
     createCard(postDataArray[i]);
   }
 }
-const postdbUrl = "https://pwabasics-199ce.firebaseio.com/posts.json"
+const fetchdbUrl = "https://pwabasics-199ce.firebaseio.com/posts.json";
+const postdbUrl = "https://us-central1-pwabasics-199ce.cloudfunctions.net/sendPostToServer"
 
 var cardCreatedFromNetworkResponse = false; 
-cacheThenNetworkFetch(postdbUrl);
+cacheThenNetworkFetch(fetchdbUrl);
 
 function cacheThenNetworkFetch(dataURL){
   fetchFromIDB('posts');

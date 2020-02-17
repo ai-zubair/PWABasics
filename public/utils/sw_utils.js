@@ -131,7 +131,7 @@ const sw_utils = function(){
         return promiseAny([fetch(request),caches.match(request)]);
     }
 
-    const postdbUrl = "https://pwabasics-199ce.firebaseio.com/posts.json";
+    const postdbUrl = "https://us-central1-pwabasics-199ce.cloudfunctions.net/sendPostToServer";
 
     function sendDataToServer(post){
         return fetch(postdbUrl,{
