@@ -7,7 +7,7 @@ const serviceAccount = require("./pwa-fb-key.json");
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: "https://pwabasics-199ce.firebaseio.com"
-}); //required before using any of the firebase services
+});  //required before using any of the firebase services
 
 exports.sendPostToServer = functions.https.onRequest((request, response) => {
     const {id,title,location,poster} = request.body;
