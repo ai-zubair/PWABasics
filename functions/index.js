@@ -1,5 +1,6 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
+const utils = require('./utility');
 const cors = require('cors')({origin:true}) //exports a function to which we pass origin true to allow cors
 
 const serviceAccount = require("./pwa-fb-key.json");
@@ -16,7 +17,8 @@ exports.sendPostToServer = functions.https.onRequest((request, response) => {
     return cors(request,response,async()=>{
         try{
             await admin.database().ref('posts').push(postData);
-            response.status(201).json({message: 'Post Stored', id})
+            utils.sendPushNotification(postData);
+            response.status(201).json({message: 'Post Stored', id});
         }catch(err){
             response.status(500).json({err})
         }
@@ -42,3 +44,4 @@ exports.sendPushSubscriptionToServer = functions.https.onRequest((request, respo
         }
     })
 });
+
