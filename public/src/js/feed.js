@@ -1,11 +1,11 @@
-var shareImageButton = document.querySelector('#share-image-button');
-var createPostArea = document.querySelector('#create-post');
-var closeCreatePostModalButton = document.querySelector('#close-create-post-modal-btn');
-var sharedMomentsArea = document.querySelector('#shared-moments');
-var installPromotion = document.getElementById('promotion');
-var postForm = document.getElementById("postForm");
-var titleInput = document.getElementById("title");
-var locationInput = document.getElementById("location");
+var shareImageButton            = document.querySelector('#share-image-button');
+var createPostArea              = document.querySelector('#create-post');
+var closeCreatePostModalButton  = document.querySelector('#close-create-post-modal-btn');
+var sharedMomentsArea           = document.querySelector('#shared-moments');
+var installPromotion            = document.getElementById('promotion');
+var postForm                    = document.getElementById("postForm");
+var titleInput                  = document.getElementById("title");
+var locationInput               = document.getElementById("location");
 
 function showPromotion(){
   if(deferredEvent){

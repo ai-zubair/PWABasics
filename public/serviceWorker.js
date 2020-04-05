@@ -39,3 +39,14 @@ self.addEventListener('sync',(event)=>{
         event.waitUntil(sw_utils.syncPostsToServer());
     }
 })
+
+self.addEventListener('notificationclick',(event)=>{
+    const notification = event.notification;
+    const actionChosen = event.action || 'No action chosen';
+    console.log('Notification was clicked!',notification,'\n','Action: ',actionChosen);
+    notification.close();
+})
+
+self.addEventListener('notificationclose',event=>{
+    console.log('notification closed',event);
+})

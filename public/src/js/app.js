@@ -38,8 +38,42 @@ async function requestUserPermission(){
         console.log('User has denied permission!')
     }else{
         console.log('User has granted permission!');
-        showConfirmationNotification();
+        // showConfirmationNotification();
+        configurePushSubscription();
     }
+}
+
+async function configurePushSubscription(){
+    const serviceWorkerRegistration = await navigator.serviceWorker.ready;
+    const pushManager = serviceWorkerRegistration.pushManager
+    const existingSubscription = await pushManager.getSubscription();
+
+    if( !existingSubscription ){
+        const publicKeyString = "BPs_NgcqW_2q07__tmW5UFfzlNF-VQOPd7xM9GrSQ57vUsR2xsvdzJq6dtUTwGFAk10ux2egXO478NVASMRKByk";
+        const vapidPublicKey = urlBase64ToUint8Array(publicKeyString);
+        const pushSubscription = await pushManager.subscribe({
+            userVisibleOnly : true,
+            applicationServerKey : vapidPublicKey
+        })
+        const serverResponse = await sendPushSubscriptionToServer(pushSubscription);
+        if(serverResponse.ok){
+            console.log('Push Subscription Saved sucessfully',await serverResponse.json());
+        }else{
+            console.log('PS save failed',await serverResponse.json())
+        }
+    }
+}
+
+function sendPushSubscriptionToServer(pushSubscription){
+    const pushSubURL = "https://us-central1-pwabasics-199ce.cloudfunctions.net/sendPushSubscriptionToServer"
+    return fetch(pushSubURL,{
+        method : 'POST',
+        headers : {
+            "Content-Type"  : "application/json",
+            "Accept" : "application/json"
+        },
+        body : JSON.stringify(pushSubscription)
+    })
 }
 
 function promiseBasedPermission() {
@@ -82,3 +116,18 @@ async function showConfirmationNotification(){
     })
     // new Notification('Successfully subscribed to notifications!');
 }
+
+function urlBase64ToUint8Array(base64String) {
+    var padding = '='.repeat((4 - base64String.length % 4) % 4);
+    var base64 = (base64String + padding)
+      .replace(/\-/g, '+')
+      .replace(/_/g, '/');
+  
+    var rawData = window.atob(base64);
+    var outputArray = new Uint8Array(rawData.length);
+  
+    for (var i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
