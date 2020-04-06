@@ -165,7 +165,7 @@ const sw_utils = function(){
             vibrate:[100,100,100,100],
             tag:'subscription-message',
             data:{
-                type: 'new-post'
+                postImage: notificationData.poster
             },
             silent:false,
             renotify:true,
@@ -186,8 +186,8 @@ const sw_utils = function(){
 
     }
 
-    async function handleNotificationClick(){
-        const urlToNavigateTo = "https://pwabasics-199ce.firebaseapp.com/"
+    async function handleNotificationClick(notification){
+        const urlToNavigateTo = notification.data.postImage;
         const openClients = await clients.matchAll({
             type: 'window',
             includeUncontrolled: true

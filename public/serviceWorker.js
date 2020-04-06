@@ -52,7 +52,7 @@ self.addEventListener('push',(event)=>{
 self.addEventListener('notificationclick',(event)=>{
     
     event.waitUntil(
-        sw_utils.handleNotificationClick()
+        sw_utils.handleNotificationClick(event.notification)
     )
     event.notification.close();
 })
