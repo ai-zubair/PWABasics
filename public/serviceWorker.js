@@ -15,6 +15,7 @@ self.addEventListener('activate',(event)=>{
 })
 
 self.addEventListener('fetch',(event)=>{
+
     const assetRequest = event.request;
 
     if(sw_utils.requestMatcher(assetRequest,assets.NTC_ASSETS)){
@@ -34,14 +35,14 @@ self.addEventListener('fetch',(event)=>{
 })
 
 self.addEventListener('sync',(event)=>{
-    console.log('[Service Worker]: Background Sync in progress...');
+    
     if( event.tag === 'new-post-sync' ){
         event.waitUntil(sw_utils.syncPostsToServer());
     }
 })
 
 self.addEventListener('push',(event)=>{
-    console.log('Recieved a push notification');
+    
     const notificationData = event.data.json();
     event.waitUntil(
         sw_utils.showUserNotification(notificationData)
@@ -49,10 +50,11 @@ self.addEventListener('push',(event)=>{
 })
 
 self.addEventListener('notificationclick',(event)=>{
-    const notification = event.notification;
-    const actionChosen = event.action || 'No action chosen';
-    console.log('Notification was clicked!',notification,'\n','Action: ',actionChosen);
-    notification.close();
+    
+    event.waitUntil(
+        sw_utils.handleNotificationClick()
+    )
+    event.notification.close();
 })
 
 self.addEventListener('notificationclose',event=>{

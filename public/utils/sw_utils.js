@@ -185,6 +185,30 @@ const sw_utils = function(){
         })
 
     }
+
+    async function handleNotificationClick(){
+        const urlToNavigateTo = "https://pwabasics-199ce.firebaseapp.com/"
+        const openClients = await clients.matchAll({
+            type: 'window',
+            includeUncontrolled: true
+        })
+
+        let matchedWindowClient = null;
+
+        for (let i = 0; i < openClients.length; i++) {
+            if( openClients[i].url === urlToNavigateTo ){
+                matchedWindowClient = openClients[i];
+                break;
+            }
+            
+        }
+        if(matchedWindowClient){
+            await matchedWindowClient.focus();
+        }else{
+            await clients.openWindow(urlToNavigateTo);
+        }
+    }
+
     return {
         handlePreCaching,
         handleCacheCleanUp,
@@ -194,6 +218,7 @@ const sw_utils = function(){
         handleFailedFetch,
         requestMatcher,
         syncPostsToServer,
-        showUserNotification
+        showUserNotification,
+        handleNotificationClick
     }
 }();
