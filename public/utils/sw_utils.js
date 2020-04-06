@@ -155,6 +155,36 @@ const sw_utils = function(){
         })
     }
 
+    function showUserNotification(notificationData){
+        return self.registration.showNotification("New post added",{
+            body: 'Someone added a new post!',
+            icon:'/src/images/notificon.png',
+            badge:'/src/images/notifbadge.svg',
+            image: notificationData.poster,
+            sound:'/src/images/decay.mp3',
+            vibrate:[100,100,100,100],
+            tag:'subscription-message',
+            data:{
+                type: 'new-post'
+            },
+            silent:false,
+            renotify:true,
+            requireInteraction: true,
+            actions: [
+                {
+                    action:'say-yes',
+                    title: 'OH-YEAH!'
+                },
+                {
+                    action:'say-nay',
+                    title: 'OH-NO!'
+                }
+            ],
+            timestamp: Date.now()
+        
+        })
+
+    }
     return {
         handlePreCaching,
         handleCacheCleanUp,
@@ -163,6 +193,7 @@ const sw_utils = function(){
         handleNetworkThenCache,
         handleFailedFetch,
         requestMatcher,
-        syncPostsToServer
+        syncPostsToServer,
+        showUserNotification
     }
 }();

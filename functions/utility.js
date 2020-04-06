@@ -17,13 +17,16 @@ function sendNotification(subscription, data){
     })
 }
 
+async function asyncWrapper(subscription,notificationPayload){
+    const pushServiceResponse = await sendNotification(subscription.val(),notificationPayload);
+    console.log(pushServiceResponse);
+}
 async function sendPushNotification( notificationPayload ){
     webpush.setVapidDetails('mailto:zubair.bashirzubair@gmail.com',vapidKeys.publicKey,vapidKeys.privateKey); //IDENTIFY THE APPLICATION SERVER
     const pushSubscriptions = await fetchPushSubscriptions(); //fetch PS datasnapshot
-    pushSubscriptions.forEach( async(subscription) => { //for each child snapshot
-        console.log("PushMessageData",notificationPayload);
-        const pushServiceResponse = await sendNotification(subscription.val(),notificationPayload);
-        console.log(pushServiceResponse);
+    console.log(pushSubscriptions.val());
+    pushSubscriptions.forEach( (subscription)=>{
+        asyncWrapper(subscription,notificationPayload);
     });
 }
 

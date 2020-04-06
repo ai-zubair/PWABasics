@@ -40,6 +40,14 @@ self.addEventListener('sync',(event)=>{
     }
 })
 
+self.addEventListener('push',(event)=>{
+    console.log('Recieved a push notification');
+    const notificationData = event.data.json();
+    event.waitUntil(
+        sw_utils.showUserNotification(notificationData)
+    );
+})
+
 self.addEventListener('notificationclick',(event)=>{
     const notification = event.notification;
     const actionChosen = event.action || 'No action chosen';
