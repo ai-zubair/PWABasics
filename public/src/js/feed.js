@@ -37,8 +37,29 @@ function openCreatePostModal() {
   intialiseUserMediaDevices(); //polyfilling for navigator.mediaDevices.getUserMedia()
 }
 
-function intialiseUserMediaDevices(){ 
-  
+function getUserMediaWrapper(mediaStreamOptions){
+  return navigator.mediaDevices.getUserMedia(mediaStreamOptions).catch(err=>null);
+}
+
+async function intialiseUserMediaDevices(){ 
+  generateGetUserMediaPolyfill();
+  const mediaStreamOptions = {
+    video : {
+      facingMode : 'user'
+    }
+  }
+  const userVideoStream = await getUserMediaWrapper(mediaStreamOptions);
+
+  if(userVideoStream){
+    videoPlayer.srcObject = userVideoStream;
+    videoPlayer.style.display = 'block';
+  }else{
+    imagePickerContainer.style.display = 'block';
+    captureImageButton.style.display = 'none';
+  }
+}
+
+function generateGetUserMediaPolyfill(){
   if(!('mediaDevices' in navigator)){
     navigator.mediaDevices = {};
   }
