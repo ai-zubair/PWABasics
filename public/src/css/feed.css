@@ -17,6 +17,10 @@
   margin: auto;
 }
 
+#player{
+  transform: rotateY(180deg);
+}
+
 #create-post #pick-image {
   display: none;
 }
