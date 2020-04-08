@@ -1,11 +1,16 @@
-var shareImageButton            = document.querySelector('#share-image-button');
-var createPostArea              = document.querySelector('#create-post');
-var closeCreatePostModalButton  = document.querySelector('#close-create-post-modal-btn');
-var sharedMomentsArea           = document.querySelector('#shared-moments');
-var installPromotion            = document.getElementById('promotion');
-var postForm                    = document.getElementById("postForm");
-var titleInput                  = document.getElementById("title");
-var locationInput               = document.getElementById("location");
+const shareImageButton            = document.querySelector('#share-image-button');
+const createPostArea              = document.querySelector('#create-post');
+const closeCreatePostModalButton  = document.querySelector('#close-create-post-modal-btn');
+const sharedMomentsArea           = document.querySelector('#shared-moments');
+const installPromotion            = document.getElementById('promotion');
+const postForm                    = document.getElementById("postForm");
+const titleInput                  = document.getElementById("title");
+const locationInput               = document.getElementById("location");
+const videoPlayer                 = document.getElementById("player");
+const pictureCanvas               = document.getElementById("canvas");
+const captureImageButton          = document.getElementById("capture-btn");
+const imagePickerContainer        = document.getElementById("pick-image");
+const imagePicker                 = document.getElementById("image-picker");
 
 function showPromotion(){
   if(deferredEvent){
@@ -29,6 +34,30 @@ function openCreatePostModal() {
   // if('serviceWorker' in navigator){
   //   removeServiceWorkers();
   // }
+  intialiseUserMediaDevices(); //polyfilling for navigator.mediaDevices.getUserMedia()
+}
+
+function intialiseUserMediaDevices(){ 
+  
+  if(!('mediaDevices' in navigator)){
+    navigator.mediaDevices = {};
+  }
+
+  if(!('getUserMedia' in navigator.mediaDevices)){
+    navigator.mediaDevices.getUserMedia = function(constraints){
+
+      const getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+
+      if( !getUserMedia ){
+        return Promise.reject(new Error('Get user media method is not implemented'))
+      }
+
+      return new Promise((resolve,reject)=>{
+        getUserMedia.call(navigator,constraints,resolve,reject);
+      })
+
+    }
+  }
 }
 
 async function removeServiceWorkers(){
