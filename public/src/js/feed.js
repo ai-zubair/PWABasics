@@ -29,6 +29,25 @@ function showPromotion(){
   }
 }
 
+captureImageButton.addEventListener('click',event=>{
+  videoPlayer.style.display = 'none';
+  pictureCanvas.style.display = 'block';
+  captureImageButton.style.display = 'none';
+  const pictureCanvasContext = pictureCanvas.getContext('2d');
+  pictureCanvasContext.translate(pictureCanvas.width,0);//flip the context horizontally to avoid mirroring effect
+  pictureCanvasContext.scale(-1, 1);//flip the context horizontally to avoid mirroring effect
+  pictureCanvasContext.drawImage(videoPlayer,0,0,pictureCanvas.width,videoPlayer.videoHeight/(videoPlayer.videoWidth/pictureCanvas.width));
+  stopUserVideoStream();
+  pictureCanvasContext.translate(pictureCanvas.width,0); //flip back the context for further drawings
+  pictureCanvasContext.scale(-1, 1); //flip back the context for further drawings
+})
+
+function stopUserVideoStream(){
+  const videoStream = videoPlayer.srcObject;
+  const videoTrack = videoStream.getVideoTracks()[0];
+  videoTrack.stop();
+}
+
 function openCreatePostModal() {
   createPostArea.style.display = 'block';
   // if('serviceWorker' in navigator){
@@ -53,6 +72,7 @@ async function intialiseUserMediaDevices(){
   if(userVideoStream){
     videoPlayer.srcObject = userVideoStream;
     videoPlayer.style.display = 'block';
+    captureImageButton.style.display = 'block';
   }else{
     imagePickerContainer.style.display = 'block';
     captureImageButton.style.display = 'none';
@@ -90,6 +110,10 @@ async function removeServiceWorkers(){
 
 function closeCreatePostModal() {
   createPostArea.style.display = 'none';
+  stopUserVideoStream();
+  videoPlayer.style.display = 'none';
+  imagePickerContainer.style.display = 'none';
+  pictureCanvas.style.display = 'none';
 }
 if(!(window.matchMedia('display-mode: standalone').matches)){ /* if PWA is opened in the web browser */
   installPromotion.innerText = "Install PWA";
