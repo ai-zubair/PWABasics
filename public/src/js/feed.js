@@ -29,23 +29,32 @@ function showPromotion(){
   }
 }
 
+let userPicture;
+
 captureImageButton.addEventListener('click',event=>{
   videoPlayer.style.display = 'none';
   pictureCanvas.style.display = 'block';
   captureImageButton.style.display = 'none';
   const pictureCanvasContext = pictureCanvas.getContext('2d');
-  pictureCanvasContext.translate(pictureCanvas.width,0);//flip the context horizontally to avoid mirroring effect
-  pictureCanvasContext.scale(-1, 1);//flip the context horizontally to avoid mirroring effect
+  flipCanvasHorizontally(pictureCanvas,pictureCanvasContext); //flip the drawing board for mirror effect
   pictureCanvasContext.drawImage(videoPlayer,0,0,pictureCanvas.width,videoPlayer.videoHeight/(videoPlayer.videoWidth/pictureCanvas.width));
+  pictureCanvas.toBlob((pictureBlob)=>{
+    userPicture = pictureBlob;
+    console.log(pictureBlob)
+  })
+  flipCanvasHorizontally(pictureCanvas,pictureCanvasContext); //reflip to original state for further drawings
   stopUserVideoStream();
-  pictureCanvasContext.translate(pictureCanvas.width,0); //flip back the context for further drawings
-  pictureCanvasContext.scale(-1, 1); //flip back the context for further drawings
 })
 
 function stopUserVideoStream(){
   const videoStream = videoPlayer.srcObject;
   const videoTrack = videoStream.getVideoTracks()[0];
   videoTrack.stop();
+}
+
+function flipCanvasHorizontally(canvas,canvasDrawingContext){
+  canvasDrawingContext.translate(canvas.width,0);
+  canvasDrawingContext.scale(-1, 1);
 }
 
 function openCreatePostModal() {
@@ -213,16 +222,24 @@ async function fetchFromNetwork(dataURL){
   }
 }
 
-async function sendDataToServer(data){
+async function sendDataToServer(postFormData){
   const serverResponse = await fetch(postdbUrl,{
     method: 'POST',
-    headers:{
-      'Content-Type' : 'application/json',
-      'Accept' : 'application/json'
-    },
-    body: JSON.stringify(data)
+    body: postFormData
   })
   console.log("Sent data to the server!",serverResponse);
+}
+
+function createFormData(userPost){
+  const userFormData = new FormData();
+  for (const dataKey in userPost) {
+    if(dataKey === 'poster'){
+      userFormData.append(dataKey,userPost[dataKey],`${userPost.id}.png`)
+    }else{
+      userFormData.append(dataKey,userPost[dataKey]);
+    }
+  }
+  return userFormData;
 }
 
 postForm.addEventListener('submit',async(event)=>{
@@ -233,15 +250,15 @@ postForm.addEventListener('submit',async(event)=>{
     return;
   }
 
-  const postData = { //data to send
+  const postData = {                 //data to send
     id: Date.now(),
     title: titleInput.value,
     location: locationInput.value,
-    poster:'https://firebasestorage.googleapis.com/v0/b/pwabasics-199ce.appspot.com/o/testimg.jpeg?alt=media&token=21e78c60-f38e-4474-b19e-d013d2d54f2e'
-  }
+    poster: userPicture
+  };
 
   if( 'serviceWorker' in navigator && 'SyncManager' in window ){ //backward compatability check
-  
+    
     await iDBUtils.addToDB('sync',[postData]); //storing the task data in IDB
 
     const serviceWorkerRegistration = await navigator.serviceWorker.ready; //registering a sync task
@@ -254,7 +271,8 @@ postForm.addEventListener('submit',async(event)=>{
     //end of notification code
 
   }else{ //add a fallback for the older browsers and simply send the data to the server
-    sendDataToServer(postData).catch(err=>{console.log('sending post data to the server failed!')});
+    const userPostForm = createFormData(postData);
+    sendDataToServer(userPostForm).catch(err=>{console.log('sending post data to the server failed!')});
   }
   closeCreatePostModal();
 })

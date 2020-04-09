@@ -133,14 +133,22 @@ const sw_utils = function(){
 
     const postdbUrl = "https://us-central1-pwabasics-199ce.cloudfunctions.net/sendPostToServer";
 
-    function sendDataToServer(post){
+    function createFormData(userPost){
+        const userFormData = new FormData();
+        for (const dataKey in userPost) {
+          if(dataKey === 'poster'){
+            userFormData.append(dataKey,userPost[dataKey],`${userPost.id}.png`)
+          }else{
+            userFormData.append(dataKey,userPost[dataKey]);
+          }
+        }
+        return userFormData;
+    }
+
+    function sendDataToServer(userPostForm){
         return fetch(postdbUrl,{
             method: 'POST',
-            headers:{
-              'Content-Type' : 'application/json',
-              'Accept' : 'application/json'
-            },
-            body: JSON.stringify(post)
+            body: userPostForm
           })
     }
 
@@ -148,7 +156,8 @@ const sw_utils = function(){
         const savedPosts = await iDBUtils.readFromDB('sync'); //read all the posts saved for sync
 
         savedPosts.forEach(async(post)=>{ //for each of the saved posts
-            const serverResponse = await sendDataToServer(post);//send the post to the server
+            const userPostForm = createFormData(post)
+            const serverResponse = await sendDataToServer(userPostForm);//send the post to the server
             if(serverResponse.ok){
                 await iDBUtils.removeFromStore('sync',post.id);//delete the post from IDB
             }
