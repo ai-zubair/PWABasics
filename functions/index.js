@@ -2,6 +2,8 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const utils = require('./utility');
 const cors = require('cors')({origin:true}) //exports a function to which we pass origin true to allow cors
+const formidable = require('formidable-serverless');
+const fs = require('fs');
 
 const serviceAccount = require("./pwa-fb-key.json");
 
@@ -10,18 +12,51 @@ admin.initializeApp({
   databaseURL: "https://pwabasics-199ce.firebaseio.com"
 });  //required before using any of the firebase services
 
-exports.sendPostToServer = functions.https.onRequest((request, response) => {
-    console.log(request.body);
-    const {id,title,location,poster} = request.body;
-    const postData = {id,title,location,poster}
-    return cors(request,response,async()=>{
-        try{
-            await admin.database().ref('posts').push(postData);
-            utils.sendPushNotification(postData);
-            response.status(201).json({message: 'Post Stored', id});
-        }catch(err){
-            response.status(500).json({err})
-        }
+const runTimeOptions = {
+    timeoutSeconds : 90
+}
+exports.sendPostToServer = functions.runWith(runTimeOptions).https.onRequest((request, response) => {
+    return cors(request,response,()=>{
+        const userPostForm = new formidable.IncomingForm();
+        debugger;
+        userPostForm.parse(request,async(err,fields,files)=>{
+            const uploadFile = files.poster;
+            /* ensure that the file to upload has been placed at the correct temporary location on the server */
+            fs.renameSync(uploadFile.path,`/tmp/${uploadFile.name}`)
+
+            /* upload the file to the cloud storage */
+            const fileURL = await utils.uploadFileToCloud(uploadFile);
+
+            if(response){
+                /* save the user post to the database and send notification */
+                const userPost = {
+                    id:fields.id,
+                    title:fields.id,
+                    location:fields.id,
+                    poster:fileURL
+                }
+
+                try{
+                    await admin.database().ref('posts').push(userPost);
+                    await utils.sendPushNotification(userPost);
+                    response.status(201).json({
+                        message : 'POST_SAVED',
+                        id : fields.id
+                    })
+                }catch(err){
+                    response.status(500).json({
+                        err,
+                        errcode: 'SAVE_POST_FAILED'
+                    })
+                }
+            }else{
+                /* send back an error response to the client */
+                response.status(500).json({
+                    errcode: 'FILE_UPLOAD_FAILED'
+                })
+            }
+            
+        })
     })
 });
 

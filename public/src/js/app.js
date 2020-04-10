@@ -65,7 +65,7 @@ async function configurePushSubscription(){
 }
 
 function sendPushSubscriptionToServer(pushSubscription){
-    const pushSubURL = "https://us-central1-pwabasics-199ce.cloudfunctions.net/sendPushSubscriptionToServer"
+    const pushSubURL = "http://localhost:5000/sendPushSubscriptionToServer"
     return fetch(pushSubURL,{
         method : 'POST',
         headers : {

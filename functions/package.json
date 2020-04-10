@@ -7,15 +7,18 @@
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
-    "genKeys":"web-push generate-vapid-keys"
+    "genKeys": "web-push generate-vapid-keys"
   },
   "engines": {
     "node": "8"
   },
   "dependencies": {
+    "@google-cloud/storage": "^4.7.0",
     "cors": "^2.8.5",
     "firebase-admin": "^8.9.2",
     "firebase-functions": "^3.3.0",
+    "formidable-serverless": "^1.0.3",
+    "uuidv4": "^6.0.7",
     "web-push": "^3.4.3"
   },
   "devDependencies": {
