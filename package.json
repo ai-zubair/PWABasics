@@ -4,8 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "./node_modules/.bin/nodemon ./server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "nodemon ./server.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "genWbConfig":"workbox wizard",
+    "genSW":"workbox generateSW workbox-config.js" 
   },
   "author": "Zubair Bashir",
   "license": "MIT",
@@ -13,6 +15,7 @@
     "express": "^4.17.1"
   },
   "devDependencies": {
-    "nodemon": "^2.0.2"
+    "nodemon": "^2.0.2",
+    "workbox-cli": "^5.1.2"
   }
 }

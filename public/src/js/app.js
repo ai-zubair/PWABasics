@@ -1,7 +1,7 @@
 const notificationButtons = document.getElementsByClassName('enable-notifications');
 
 if (navigator.serviceWorker) {
-    navigator.serviceWorker.register('/serviceWorker.js').then((registration)=>{
+    navigator.serviceWorker.register('/sw.js').then((registration)=>{
         // console.log("[Application]: Service Worker Registered!")
     }).catch(err=>{
         console.log("[Application]: Couldn't register service worker.",err);
