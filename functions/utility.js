@@ -2,7 +2,11 @@ const admin = require('firebase-admin');
 const webpush = require('web-push');
 const vapidKeys = require('./config');
 const {Storage} = require('@google-cloud/storage');
-const projectStorage = new Storage();
+const storageConfiguration = {
+    projectId: 'pwabasics-199ce',
+    keyFilename: 'pwa-fb-key.json'
+}
+const projectStorage = new Storage(storageConfiguration);
 const {uuid} = require('uuidv4');
 
 async function uploadFileToCloud(uploadFile){
@@ -33,13 +37,34 @@ async function uploadFileToCloud(uploadFile){
     
 }
 
+async function saveUserPost(postData){
+    const userPost = {
+        id: postData.fields.id,
+        title: postData.fields.title,
+        location: postData.fields.location,
+        poster: postData.fileURL
+    }
+    const dbResponse = await storeToDB(userPost);
 
+    if(dbResponse){
+       try{
+            await sendPushNotification(userPost);
+            return true;  
+       }catch(err){
+            return null;
+       } 
+    }
+}
 function fetchPushSubscriptions(){
     return admin.database().ref('pushSubscriptions').once("value");
 }
 
 async function removePushSubscription(subscriptionKey){
     await admin.database().ref(`/pushSubscriptions/${subscriptionKey}`).remove();
+}
+
+function storeToDB(data){
+    return admin.database().ref('posts').push(data).catch(err=>null);
 }
 
 function sendNotification(subscription, data){
@@ -67,5 +92,6 @@ async function sendPushNotification( notificationPayload ){
 
 module.exports = {
     sendPushNotification,
-    uploadFileToCloud
+    uploadFileToCloud,
+    saveUserPost
 }

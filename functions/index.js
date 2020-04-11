@@ -18,32 +18,26 @@ const runTimeOptions = {
 exports.sendPostToServer = functions.runWith(runTimeOptions).https.onRequest((request, response) => {
     return cors(request,response,()=>{
         const userPostForm = new formidable.IncomingForm();
-        debugger;
+        
         userPostForm.parse(request,async(err,fields,files)=>{
             const uploadFile = files.poster;
+
             /* ensure that the file to upload has been placed at the correct temporary location on the server */
             fs.renameSync(uploadFile.path,`/tmp/${uploadFile.name}`)
 
             /* upload the file to the cloud storage */
             const fileURL = await utils.uploadFileToCloud(uploadFile);
 
-            if(response){
+            if(fileURL){
                 /* save the user post to the database and send notification */
-                const userPost = {
-                    id:fields.id,
-                    title:fields.id,
-                    location:fields.id,
-                    poster:fileURL
-                }
-
-                try{
-                    await admin.database().ref('posts').push(userPost);
-                    await utils.sendPushNotification(userPost);
+                const saveResponse = await utils.saveUserPost({fields,fileURL})
+                
+                if(saveResponse){
                     response.status(201).json({
                         message : 'POST_SAVED',
                         id : fields.id
                     })
-                }catch(err){
+                }else{
                     response.status(500).json({
                         err,
                         errcode: 'SAVE_POST_FAILED'
