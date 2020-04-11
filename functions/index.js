@@ -9,7 +9,8 @@ const serviceAccount = require("./pwa-fb-key.json");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://pwabasics-199ce.firebaseio.com"
+  databaseURL: "https://pwabasics-199ce.firebaseio.com",
+  storageBucket: "pwabasics-199ce.appspot.com"
 });  //required before using any of the firebase services
 
 const runTimeOptions = {

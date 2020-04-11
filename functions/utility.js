@@ -1,17 +1,17 @@
 const admin = require('firebase-admin');
 const webpush = require('web-push');
 const vapidKeys = require('./config');
-const {Storage} = require('@google-cloud/storage');
-const storageConfiguration = {
-    projectId: 'pwabasics-199ce',
-    keyFilename: 'pwa-fb-key.json'
-}
-const projectStorage = new Storage(storageConfiguration);
+// const {Storage} = require('@google-cloud/storage');
+// const storageConfiguration = {
+//     projectId: 'pwabasics-199ce',
+//     keyFilename: 'pwa-fb-key.json'
+// }
+// const projectStorage = new Storage(storageConfiguration);
 const {uuid} = require('uuidv4');
 
 async function uploadFileToCloud(uploadFile){
     /* get the default firebase cloud storage bucket */
-    const defaultBucket = projectStorage.bucket('pwabasics-199ce.appspot.com');
+    const defaultBucket = admin.storage().bucket();
 
     /* obtain a public download token */
     const publicDownloadToken = uuid();
