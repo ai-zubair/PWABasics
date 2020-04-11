@@ -88,6 +88,10 @@ async function intialiseUserMediaDevices(){
   }
 }
 
+imagePicker.addEventListener('change',(event)=>{
+  userPicture = event.target.files[0];
+})
+
 function generateGetUserMediaPolyfill(){
   if(!('mediaDevices' in navigator)){
     navigator.mediaDevices = {};
@@ -119,7 +123,7 @@ async function removeServiceWorkers(){
 
 function closeCreatePostModal() {
   createPostArea.style.display = 'none';
-  stopUserVideoStream();
+  videoPlayer.srcObject?stopUserVideoStream():null;
   videoPlayer.style.display = 'none';
   imagePickerContainer.style.display = 'none';
   pictureCanvas.style.display = 'none';
