@@ -72,11 +72,11 @@ const sw_utils = function(){
     
     async function staleWhileRevalidate(request){
         const cacheResponse = await caches.match(request);
-        const networkResponsePromise = async function(){
+        const networkResponsePromise = async function(){ //pending promise immediately returned
             const newtworkResponse = await fetch(request);
             const dynmaicCache = await caches.open('dynamicCache');
             dynmaicCache.put(request,response);   
-            return newtworkResponse;
+            return newtworkResponse;//pending promise resolve value
         }();
         return cacheResponse || networkResponsePromise;
     
