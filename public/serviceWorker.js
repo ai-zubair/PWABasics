@@ -20,7 +20,7 @@ self.addEventListener('fetch',(event)=>{
 
     if(sw_utils.requestMatcher(assetRequest,assets.NTC_ASSETS)){
         event.respondWith(
-            sw_utils.handleNetworkThenCache(assetRequest).catch(()=> sw_utils.handleFailedFetch(assetRequest))
+            sw_utils.handleCacheThenNetwork(assetRequest).catch(()=> sw_utils.handleFailedFetch(assetRequest))
         );
     }else if(sw_utils.requestMatcher(assetRequest,assets.STATIC_ASSETS)){
         event.respondWith(

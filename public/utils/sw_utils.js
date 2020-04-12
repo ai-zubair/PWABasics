@@ -60,7 +60,7 @@ const sw_utils = function(){
         return fetch(request);
     }
     
-    async function handleNetworkThenCache(request){
+    async function handleCacheThenNetwork(request){
         const networkResponse = await fetch(request);
         const parsedResponse = await networkResponse.clone().json();
         // await iDBUtils.cleanIfNotPresent('posts',parsedResponse);
@@ -70,6 +70,18 @@ const sw_utils = function(){
         return networkResponse;
     }
     
+    async function staleWhileRevalidate(request){
+        const cacheResponse = await caches.match(request);
+        const networkResponsePromise = async function(){
+            const newtworkResponse = await fetch(request);
+            const dynmaicCache = await caches.open('dynamicCache');
+            dynmaicCache.put(request,response);   
+            return newtworkResponse;
+        }();
+        return cacheResponse || networkResponsePromise;
+    
+    }
+
     async function handleFailedFetch(request){
         if(request.headers.get('accept').includes('text/html')){
             const appShellCache = await caches.open(assets.APP_SHELL_CACHE);
@@ -223,7 +235,7 @@ const sw_utils = function(){
         handleCacheCleanUp,
         handleFetchCWNF,
         handleFetchCacheOnly,
-        handleNetworkThenCache,
+        handleCacheThenNetwork,
         handleFailedFetch,
         requestMatcher,
         syncPostsToServer,

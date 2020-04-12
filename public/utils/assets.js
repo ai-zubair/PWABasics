@@ -18,11 +18,11 @@ const assets = function(){
         'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css'
     ];
 
-    const NTC_ASSETS = ['https://pwabasics-199ce.firebaseio.com/posts.json']
+    const CTN_ASSETS = ['https://pwabasics-199ce.firebaseio.com/posts.json']
     return {
         APP_SHELL_CACHE,
         DYNAMIC_CACHE,
         STATIC_ASSETS,
-        NTC_ASSETS
+        CTN_ASSETS
     }
 }();
